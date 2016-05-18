@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-cn" ng-app="app">
+<head>
+    <meta charset="UTF-8"/>
+    <title>例子</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+</head>
+<body ng-controller="myCtrl">
+<div class="container">
+    <br/>
+    <p>查询id</p>
+    <p>
+        <input type="text" ng-model="uid" class="form-control"/>
+    </p>
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th>项目名称</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>标的额</th>
+        </tr>
+        <tr ng-repeat="info in data">
+            <td>{{info.name}}</td>
+            <td>{{info.status}}</td>
+            <td>{{info.create_time}}</td>
+            <td>{{info.money}}</td>
+        </tr>
+    </table>
+</div>
+
+
+<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/angular-1.4.8.js"></script>
+<script type="text/javascript">
+    var app = angular.module("app", []);
+    // 定义获取数据的公共服务
+    app.factory("getDataFactory", function ($http, $q) {
+        var data = {};
+        // 1. 创建延迟
+        var deferred = $q.defer();
+        // 2. 创建共的获取数据的方法get
+        data.getData = function (params) {
+            $http.get("http://localhost/cloud_api/index.php/sales/projects", {params: params}).success(function (data) {
+                // 3. 成功 deferred.resolve;
+                deferred.resolve(data);
+            }).error(function (data) {
+                // 4. 失败 deferred.reject
+                deferred.reject(data);
+            });
+            // 5. 最后返回 promise,在控制器中,使用then接口数据
+            return deferred.promise;
+        };
+        // 6. 创建获取数据的post方法
+        data.postData = function (data) {
+            $http.post("http://localhost/cloud_api/index.php/sales/projects", data).success(function (data) {
+                deferred.resolve(data);
+            }).error(function (data) {
+                deferred.reject(data);
+            });
+            return deferred.promise;
+        };
+        return data;
+    });
+
+    // 6. 控制器中使用自定义服务
+    app.controller("myCtrl", function ($http, $scope, $timeout, getDataFactory) {
+        // 调用自定义服务中的方法,获取数据
+        getDataFactory.getData({uid: newval}).then(function (data) {
+            if (data.status == true) {
+                scope.data = data.data.data;
+            }
+            else {
+                alert(data.message);
+            }
+            console.log(data);
+        });
+        
+        // 查询更新结果
+        $scope.uid = 2;
+        // $watch 监听$scope.uid 注意uid的写法
+        // 第一个参数是最新改变的值,第二个参数是上一次改变的旧址
+        $scope.$watch('uid', function (newval, preval, scope) {
+            // 如果不实用自定义服务,就可以使用$watch时时查询数据,因为使用自定义服务,数据实在服务中调取的,所以不能更新
+
+            // $http.get("http://localhost/cloud_api/index.php/sales/projects", {params: {uid: newval}}).success(function (data) {
+            //     $scope.data = data.data.data;
+            // })
+        });
+    });
+</script>
+</body>
+</html>
