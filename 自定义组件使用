@@ -37,10 +37,10 @@
     // 定义获取数据的公共服务
     app.factory("getDataFactory", function ($http, $q) {
         var data = {};
-        // 1. 创建延迟
-        var deferred = $q.defer();
         // 2. 创建共的获取数据的方法get
         data.getData = function (params) {
+            // 1. 创建延迟
+            var deferred = $q.defer();
             $http.get("http://localhost/cloud_api/index.php/sales/projects", {params: params}).success(function (data) {
                 // 3. 成功 deferred.resolve;
                 deferred.resolve(data);
